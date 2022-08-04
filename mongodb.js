@@ -1,17 +1,21 @@
-const Mongo = require('mongodb').MongoClient
+const { MongoClient, ObjectID } = require('mongodb');
 
 // MongoDB database connection
 const connectionURL = 'mongodb://127.0.0.1:27017';
 const databaseName = 'task-manager';
 
-Mongo.connect(connectionURL, { useNewUrlParser: true }, (error, client) => {
+const id = new ObjectID()
+
+console.log(id.getTimestamp());
+
+MongoClient.connect(connectionURL, { useNewUrlParser: true }, (error, client) => {
     if (error) {
         return console.log('Unable to connect to database!')
     }
     const db = client.db(databaseName);
 
     db.collection('users')
-        .insertOne({ name: 'Andrew', age: 27 })
+        .insertOne({_id: id, name: 'Andrew', age: 27 })
         .then(res => { console.log(res) }, err => { console.log(err) });
 
     db.collection('users')
@@ -20,7 +24,18 @@ Mongo.connect(connectionURL, { useNewUrlParser: true }, (error, client) => {
             { name: 'Mateusz', age: 26 },
             { name: 'Aleksander', age: 25 }
         ]).then(
-            res => {console.log(res)},
-            err => {console.log(err)}
+            res => console.log(res),
+            err => console.log(err)
         );
+
+    db.collection('tasks')
+        .insertMany([
+            { description: 'lorem ipsum dolor sit amet.', completed: true },
+            { description: 'Random random random random', completed: false },
+            { description: 'This is just a dummy text, ok?', completed: true }
+        ]).then(
+            res => console.log(res),
+            err => console.log(err)
+        );
+
 });
