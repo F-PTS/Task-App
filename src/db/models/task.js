@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const Task = mongoose.model('Task', {
-    dscription: {
+    description: {
         type: String,
         required: true,
         trim: true
