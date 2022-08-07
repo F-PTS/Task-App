@@ -1,4 +1,6 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+
 const Task = require('../db/models/task');
 const router = new express.Router();
 
@@ -53,11 +55,10 @@ router.patch('/tasks/:id', async (req, res) => {
         return res.status(400).send({ error: 'Invalid updates!' });
 
     try {
-        const task = await Task.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true } 
-        );
+        const task = await Task.findById(req.params.id);
+        updates.forEach(update => task[update] = req.body[update]);
+    
+        await task.save();
 
         if(!task) res.status(404).send();
 
