@@ -14,7 +14,7 @@ app.use(express.json());
 
 app.get('/users', async (req, res) => {
     try {
-        const users = User.find({});
+        const users = await User.find({});
 
         res.send(users);
     } catch (err) {
@@ -24,12 +24,12 @@ app.get('/users', async (req, res) => {
 
 app.get('/users/:id', async (req, res) => {
     try {
-        const user = User.findById(req.params.id)
+        const user = await User.findById(req.params.id)
 
         if(!user) return res.status(404).send();
 
         res.send(user);
-    } catch (error) {
+    } catch (err) {
         res.status(401).send(err);
     }
 });
@@ -75,11 +75,64 @@ app.post('/tasks', async (req, res) => {
 
     try {
         await task.save();
-
         res.status(201).send(task);
     } catch (err) {
         res.status(400).send(err);
     }
 });
+
+// UPDATE
+
+app.patch('/users/:id', async (req, res) => {
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['name', 'email', 'password', 'age'];
+
+    const isValidOperation = updates.every(update => {
+        allowedUpdates.includes(update);
+    })
+
+    if(!isValidOperation)
+        return res.status(400).send({ error: 'Invalid updates!' });
+
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if(!user) res.status(404).send();
+
+        res.send(user);
+    } catch(err) {
+        res.status(400).send(err);
+    }
+})
+
+app.patch('/tasks/:id', async (req, res) => {
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['description', 'completed'];
+
+    const isValidOperation = updates.every(update => {
+        allowedUpdates.includes(update);
+    })
+
+    if(!isValidOperation)
+        return res.status(400).send({ error: 'Invalid updates!' });
+
+    try {
+        const task = await Task.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true } 
+        );
+
+        if(!task) res.status(404).send();
+
+        res.send(task);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+})
 
 app.listen(port, () => {console.log('server is up on port' + port)});
