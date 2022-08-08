@@ -48,6 +48,24 @@ router.post('/users/login', async (req, res) => {
     }
 });
 
+// logout
+
+router.post('/users/logout', auth, async (req, res) => {
+    try {
+
+        console.log(req.user.tokens);
+
+        req.user.tokens = req.user.tokens.filter(token => {
+            return token.token !== req.token
+        });
+
+        await req.user.save();
+        res.send({ message: "Sucessfuly logged out"});
+    } catch (err) {
+        res.status(500).send();
+    }
+})
+
 // update
 
 router.patch('/users/:id', async (req, res) => {
