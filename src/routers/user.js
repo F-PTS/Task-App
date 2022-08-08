@@ -6,14 +6,8 @@ const router = new express.Router();
 
 // read
 
-router.get('/users', auth, async (req, res) => {
-    try {
-        const users = await User.find({});
-
-        res.send(users);
-    } catch (err) {
-        res.status(500).send(err);
-    }
+router.get('/users/me', auth, async (req, res) => {
+    res.send(req.user);
 });
 
 router.get('/users/:id', async (req, res) => {
