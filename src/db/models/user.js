@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 7,
         validate(v) {
-            if(v.length <= 6 && v.toLowerCase().includes(password)) throw new Error('Wrong password!') 
+            if(v.length <= 6 && v.toLowerCase().includes(password)) throw new Error("Your password doesn't meet the requirements. It has to be at least 6 characters long.") 
         }
     },
     age: {

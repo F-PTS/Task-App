@@ -1,5 +1,6 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 require('./db/mongoose');
 
 const app = express();
@@ -12,4 +13,4 @@ const taskRouter = require('./routers/task');
 
 app.use(userRouter, taskRouter);
 
-app.listen(port, () => {console.log('server is up on port' + port)});
+app.listen(port, () => console.log('server is up on port' + port));

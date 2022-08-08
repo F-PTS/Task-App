@@ -62,7 +62,7 @@ router.patch('/users/:id', async (req, res) => {
         allowedUpdates.includes(update);
     })
 
-    if(isValidOperation) return res.status(400).send({ error: 'Invalid updates!' });
+    if(isValidOperation) return res.status(400).send({ error: "Invalid update: You're trying to update not allowed fields" });
 
     try {
 
