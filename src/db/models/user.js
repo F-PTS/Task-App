@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -15,7 +16,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         lowercase: true,
         validate(v) {
-            if (!validator.isEmail(v)) throw new Error('Email invalid')
+            if (!validator.isEmail(v)) throw new Error('Email invalid');
         }
     },
     password: {
@@ -24,7 +25,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 7,
         validate(v) {
-            if(v.length <= 6 && v.toLowerCase().includes(password)) throw new Error("Your password doesn't meet the requirements. It has to be at least 6 characters long.") 
+            if(v.length <= 6 && v.toLowerCase().includes(password)) throw new Error("Your password doesn't meet the requirements. It has to be at least 6 characters long.");
         }
     },
     age: {
@@ -33,8 +34,24 @@ const userSchema = new mongoose.Schema({
         validate(v) {
             if (v < 0) throw new Error('Age must be a positive number');
         }
-    }
+    },
+    tokens: [{
+        token: {
+            type: String,
+            required: true
+        }
+    }]
 })
+
+userSchema.methods.generateAuthToken = async function () {
+    const user = this;
+    const token = jwt.sign({ _id: user._id.toString() }, 'random');
+
+    user.tokens = user.tokens.concat({ token });
+    await user.save();
+
+    return token;
+}
 
 userSchema.statics.findByCredentials = async (email, password) => {
     const user = await User.findOne({ email });
@@ -42,7 +59,7 @@ userSchema.statics.findByCredentials = async (email, password) => {
 
     if(!isMatch || !user) throw new Error('Unable to log in');
 
-    return user
+    return user;
 }
 
 userSchema.pre('save', async function (next) {
@@ -53,6 +70,6 @@ userSchema.pre('save', async function (next) {
     next();
 })
 
-const User = mongoose.model('User', userSchema)
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;
