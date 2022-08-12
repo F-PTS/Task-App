@@ -5,25 +5,11 @@ const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // read
-
 router.get('/users/me', auth, async (req, res) => {
     res.send(req.user);
 });
 
-router.get('/users/:id', async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id)
-
-        if(!user) return res.status(404).send();
-
-        res.send(user);
-    } catch (err) {
-        res.status(401).send(err);
-    }
-});
-
 // create
-
 router.post('/users', async (req, res) => {
     try {
         const user = new User(req.body);
@@ -37,7 +23,6 @@ router.post('/users', async (req, res) => {
 });
 
 // login
-
 router.post('/users/login', async (req, res) => {
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password);
@@ -48,13 +33,21 @@ router.post('/users/login', async (req, res) => {
     }
 });
 
-// logout
+// logout All
+router.post('/users/logoutAll', auth, async (req, res) => {
+    try {
+        req.user.tokens = []
+        await req.user.save();
 
+        res.send();
+    } catch (error) {
+        res.status(500).send({error});
+    }
+})
+
+// logout one
 router.post('/users/logout', auth, async (req, res) => {
     try {
-
-        console.log(req.user.tokens);
-
         req.user.tokens = req.user.tokens.filter(token => {
             return token.token !== req.token
         });
@@ -67,26 +60,19 @@ router.post('/users/logout', auth, async (req, res) => {
 })
 
 // update
-
-router.patch('/users/:id', async (req, res) => {
-    const updates = Object.keys(req.body);
-
-    const allowedUpdates = ['name', 'email', 'password', 'age'];
-
-    const isValidOperation = updates.every(update => {
-        allowedUpdates.includes(update);
-    })
-
-    if(isValidOperation) return res.status(400).send({ error: "Invalid update: You're trying to update not allowed fields" });
-
+router.patch('/users/me', auth, async (req, res) => {
     try {
+        const updates = Object.keys(req.body);
+        const allowedUpdates = ['name', 'email', 'password', 'age'];
 
-        const user = await User.findById(req.params.id);
-        updates.forEach(update => user[update] = req.body[update])
+        const isValidOperation = updates.every(update => {
+            allowedUpdates.includes(update);
+        })
 
-        await user.save();
+        if(isValidOperation) return res.status(400).send({ error: "Invalid update: You're trying to update not allowed fields" });
 
-        if(!user) res.status(404).send();
+        updates.forEach(update => req.user[update] = req.body[update])
+        await req.user.save();
 
         res.send(user);
     } catch(err) {
@@ -95,14 +81,10 @@ router.patch('/users/:id', async (req, res) => {
 })
 
 // delete
-
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/me', auth, async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.id)
-
-        if(!user) return res.status(404).send();
-
-        res.send(user);
+        await req.user.remove()
+        res.send(req.user);
     } catch (err) {
         res.send(err);
     }
