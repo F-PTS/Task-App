@@ -7,10 +7,16 @@ const router = new express.Router();
 // READ
 router.get('/tasks', auth, async (req, res) => {
     try {
-        const tasks = await Task.find({ owner: req.user._id });
+        if(req.query.completed) {
+            completed = req.query.completed === "true";
+            const tasks = await Task.find({ owner: req.user._id, completed });
+        }
+
+        const tasks = await Task.find({ owner: req.user._id});
 
         res.send(tasks);
     } catch (err) {
+        console.log(err);
         res.status(500).send(err);
     }
 });
